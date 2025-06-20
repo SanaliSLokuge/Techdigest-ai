@@ -2,7 +2,7 @@ import streamlit as st
 import feedparser
 import requests
 import os
-from educhain import Educhain
+from educhain.client import EduchainClient  # ✅ FIXED
 
 # === CONFIG ===
 API_KEY  = "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"
@@ -13,8 +13,8 @@ os.environ["OPENAI_API_KEY"]  = API_KEY
 os.environ["OPENAI_API_BASE"] = API_BASE
 os.environ["EDUCHAIN_MODEL"]  = "openrouter/llama3"
 
-# Init client
-educhain_client = Educhain()
+# Init Educhain client ✅
+educhain_client = EduchainClient()
 
 # === FUNCTIONS ===
 def generate_summary(text: str) -> str:
@@ -24,7 +24,7 @@ def generate_summary(text: str) -> str:
         "Content-Type":  "application/json"
     }
     payload = {
-        "model": "openai/o4-mini",  # ✅ Works reliably on OpenRouter
+        "model": "openai/o4-mini",
         "messages": [{"role": "user", "content": f"Summarize the following text briefly:\n\n{text}"}],
         "max_tokens": 150,
         "temperature": 0.3
