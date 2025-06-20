@@ -1,11 +1,11 @@
-import os
+import streamlit as st
 import requests
 import feedparser
-import streamlit as st
+import os
 from educhain import Educhain
 
-# Environment variables setup — ideally set externally or via secrets
-API_KEY = "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"  # Your OpenRouter key
+# Setup keys (better use secrets in real apps)
+API_KEY = "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"
 API_BASE = "https://openrouter.ai/api/v1"
 os.environ["OPENAI_API_KEY"] = API_KEY
 os.environ["OPENAI_API_BASE"] = API_BASE
@@ -17,10 +17,10 @@ def generate_summary(text):
     url = f"{API_BASE}/chat/completions"
     headers = {"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}
     data = {
-        "model": "openrouter/openai/gpt-3.5-turbo",
+        "model": "gpt-3.5-turbo",
         "messages": [{"role": "user", "content": f"Summarize the following text briefly:\n\n{text}"}],
         "max_tokens": 150,
-        "temperature": 0.3,
+        "temperature": 0.3
     }
     resp = requests.post(url, headers=headers, json=data)
     resp.raise_for_status()
