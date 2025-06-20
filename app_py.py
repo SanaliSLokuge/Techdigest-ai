@@ -5,7 +5,7 @@ import os
 from educhain import Educhain
 
 # Setup keys (better use secrets in real apps)
-API_KEY = "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"
+API_KEY = "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"
 API_BASE = "https://openrouter.ai/api/v1"
 os.environ["OPENAI_API_KEY"] = API_KEY
 os.environ["OPENAI_API_BASE"] = API_BASE
@@ -17,7 +17,7 @@ def generate_summary(text):
     url = f"{API_BASE}/chat/completions"
     headers = {"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}
     data = {
-        "model": "mistralai/mistral-7b-instruct",
+        "model": "mistralai/ministral-8b",
         "messages": [{"role": "user", "content": f"Summarize the following text briefly:\n\n{text}"}],
         "max_tokens": 150,
         "temperature": 0.3
