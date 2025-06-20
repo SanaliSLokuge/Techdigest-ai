@@ -3,7 +3,8 @@ import streamlit as st
 import feedparser
 import requests
 from educhain import Educhain
-from educhain.llm_config import LLMConfig
+from educhain.config import LLMConfig 
+
 
 # === CONFIG ===
 API_KEY  = "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"  # 👈 OpenRouter Key
