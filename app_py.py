@@ -7,7 +7,7 @@ from educhain import Educhain
 # === CONFIG ===
 # Store your key in Streamlit secrets (Settings → Secrets)
 API_KEY = "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"
-API_BASE = "https://openrouter.ai/v1"
+API_BASE = "https://openrouter.ai/api/v1"
 
 # Educhain model setup
 os.environ["OPENAI_API_KEY"] = API_KEY
