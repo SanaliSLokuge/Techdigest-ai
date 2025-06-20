@@ -2,7 +2,7 @@ import streamlit as st
 import feedparser
 import requests
 import os
-from educhain.client import EduchainClient  # ✅ FIXED
+from educhain.client import EduchainClient
 
 # === CONFIG ===
 API_KEY  = "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"
@@ -13,7 +13,7 @@ os.environ["OPENAI_API_KEY"]  = API_KEY
 os.environ["OPENAI_API_BASE"] = API_BASE
 os.environ["EDUCHAIN_MODEL"]  = "openrouter/llama3"
 
-# Init Educhain client ✅
+# Init Educhain client 
 educhain_client = EduchainClient()
 
 # === FUNCTIONS ===
