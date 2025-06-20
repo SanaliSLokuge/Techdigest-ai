@@ -2,16 +2,20 @@ import streamlit as st
 import feedparser
 import requests
 import os
-from educhain import qna_engine  # ✅ CORRECT WAY
+from educhain.client import EduchainClient  # ✅ Correct import
 
 # === CONFIG ===
 API_KEY  = "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"
 API_BASE = "https://openrouter.ai/api/v1"
 
-# Environment setup for Educhain
+# Set environment variables for Educhain
 os.environ["OPENAI_API_KEY"]  = API_KEY
 os.environ["OPENAI_API_BASE"] = API_BASE
-qna_engine.set_model("openrouter/llama3")  # ✅ Set model explicitly if needed
+os.environ["EDUCHAIN_MODEL"]  = "openrouter/llama3"
+
+# Initialize Educhain client
+educhain = EduchainClient()
+educhain.qna_engine.set_model("openrouter/llama3")
 
 # === FUNCTIONS ===
 def generate_summary(text: str) -> str:
@@ -21,7 +25,7 @@ def generate_summary(text: str) -> str:
         "Content-Type":  "application/json"
     }
     payload = {
-        "model": "openai/o4-mini",
+        "model": "openai/o4-mini",  # ✅ this one is free & reliable on OpenRouter
         "messages": [{"role": "user", "content": f"Summarize the following text briefly:\n\n{text}"}],
         "max_tokens": 150,
         "temperature": 0.3
@@ -40,7 +44,7 @@ def generate_summary(text: str) -> str:
 
 def generate_flashcards(text: str, num: int = 3):
     try:
-        return qna_engine.generate_mcq(topic=text, num=num)
+        return educhain.qna_engine.generate_mcq(topic=text, num=num)
     except Exception as e:
         st.warning(f"Flashcard generation skipped: {e}")
         return []
