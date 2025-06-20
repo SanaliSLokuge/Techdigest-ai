@@ -7,7 +7,7 @@ from educhain import Educhain, LLMConfig
 from langchain_openai import ChatOpenAI
 
 # --- Set your OpenAI API key here or in environment variables ---
-OPENAI_API_KEY = "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"  # Your real OpenAI API key
+OPENAI_API_KEY = "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"  # Your real OpenAI API key
 
 # Optional: set env var for convenience if you want to use it elsewhere
 os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
