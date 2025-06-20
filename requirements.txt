@@ -1,3 +1,4 @@
-streamlit>=1.20.0
+streamlitAdd commentMore actions
+requests
+feedparser
 educhain @ git+https://github.com/satvik314/educhain.git@main
-langchain-openai>=0.0.1
