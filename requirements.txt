@@ -1,4 +1,8 @@
-streamlit
-requests
+streamlit>=1.30
 feedparser
-educhain @ git+https://github.com/satvik314/educhain.git@main
+requests
+educhain>=0.1.29
+PyPDF2>=3.0.1
+langchain-google-genai>=0.0.8
+google-generativeai>=0.3.2
+python-dotenv>=1.0.1
