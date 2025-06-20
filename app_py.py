@@ -55,3 +55,7 @@ if st.button("Fetch & Summarize"):
                 st.markdown(f"    - {opt}")
             st.markdown(f"  - **Answer:** {card.answer}")
         st.markdown("---")
+
+resp = requests.post(url, headers=headers, json=data)
+print(resp.status_code, resp.text)  # Add this line
+resp.raise_for_status()
