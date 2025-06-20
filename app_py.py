@@ -32,20 +32,34 @@ def generate_summary(text):
         "Content-Type": "application/json"
     }
     data = {
-        "model": "gpt-4",  # or "gpt-3.5-turbo"
+        "model": "gpt-4",
         "messages": [{"role": "user", "content": f"Summarize this:\n\n{text}"}],
         "max_tokens": 150,
         "temperature": 0.3
     }
     resp = requests.post(url, headers=headers, json=data)
-    resp.raise_for_status()
+    if resp.status_code != 200:
+        st.error(f"Summarization API failed: {resp.status_code}")
+        st.text(resp.text)
+        return ""
     return resp.json()["choices"][0]["message"]["content"].strip()
+
 
 def get_latest_news(url, max_items=3):
     return feedparser.parse(url).entries[:max_items]
 
 def generate_flashcards(text, num=3):
-    return educhain_client.qna_engine.generate_questions(topic=text, num=num).questions
+    try:
+        result = educhain_client.qna_engine.generate_questions(topic=text, num=num)
+        # Confirm result type
+        if hasattr(result, "questions"):
+            return result.questions
+        else:
+            st.warning(f"Unexpected flashcards result: {result}")
+            return []
+    except Exception as e:
+        st.warning(f"Flashcard generation skipped: {e}")
+        return []
 
 # --- Streamlit UI ---
 st.set_page_config("📰 TechDigest AI", layout="wide")
