@@ -17,12 +17,13 @@ def generate_summary(text):
     url = f"{API_BASE}/chat/completions"
     headers = {"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}
     data = {
-        "model": "mistralai/ministral-8b",
+        "model": "openai/o4-mini",
         "messages": [{"role": "user", "content": f"Summarize the following text briefly:\n\n{text}"}],
         "max_tokens": 150,
         "temperature": 0.3
     }
     resp = requests.post(url, headers=headers, json=data)
+    print(resp.status_code, resp.text)
     resp.raise_for_status()
     return resp.json()["choices"][0]["message"]["content"].strip()
 
