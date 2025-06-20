@@ -5,15 +5,16 @@ import os
 from educhain import Educhain
 
 # === CONFIG ===
-API_KEY       = "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"
-API_BASE      = "https://openrouter.ai/v1"
+API_KEY  = "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"
+API_BASE = "https://openrouter.ai/api/v1"
 
-# Educhain setup: pick the same backend
-os.environ["OPENAI_API_KEY"]   = API_KEY
-os.environ["OPENAI_API_BASE"]  = API_BASE
-os.environ["EDUCHAIN_MODEL"]   = "openrouter/llama3"
+# Educhain setup
+os.environ["OPENAI_API_KEY"]  = API_KEY
+os.environ["OPENAI_API_BASE"] = API_BASE
+os.environ["EDUCHAIN_MODEL"]  = "openrouter/llama3"
+
+# Init client
 educhain_client = Educhain()
-educhain_client.qna_engine.set_model("openrouter/llama3")
 
 # === FUNCTIONS ===
 def generate_summary(text: str) -> str:
@@ -23,9 +24,9 @@ def generate_summary(text: str) -> str:
         "Content-Type":  "application/json"
     }
     payload = {
-        "model":       "mistralai/mistral-7b-instruct",  # Valid free model on OpenRouter
-        "messages":    [{"role": "user", "content": f"Summarize the following text briefly:\n\n{text}"}],
-        "max_tokens":  150,
+        "model": "openai/o4-mini",  # ✅ Works reliably on OpenRouter
+        "messages": [{"role": "user", "content": f"Summarize the following text briefly:\n\n{text}"}],
+        "max_tokens": 150,
         "temperature": 0.3
     }
     resp = requests.post(url, headers=headers, json=payload)
@@ -33,7 +34,6 @@ def generate_summary(text: str) -> str:
         st.error(f"Summarization API error {resp.status_code}")
         st.text(f"Raw response:\n{resp.text}")
         return ""
-    # safe‑parse JSON
     try:
         return resp.json()["choices"][0]["message"]["content"].strip()
     except Exception:
