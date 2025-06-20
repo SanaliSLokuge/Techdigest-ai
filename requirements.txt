@@ -1,4 +1,4 @@
-streamlitAdd commentMore actions
+streamlit
 requests
 feedparser
 educhain @ git+https://github.com/satvik314/educhain.git@main
