@@ -2,20 +2,16 @@ import streamlit as st
 import feedparser
 import requests
 import os
-from educhain import EduchainClient  # ✅ FIXED
+from educhain import qna_engine  # ✅ CORRECT WAY
 
 # === CONFIG ===
 API_KEY  = "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"
 API_BASE = "https://openrouter.ai/api/v1"
 
-# Educhain setup
+# Environment setup for Educhain
 os.environ["OPENAI_API_KEY"]  = API_KEY
 os.environ["OPENAI_API_BASE"] = API_BASE
-os.environ["EDUCHAIN_MODEL"]  = "openrouter/llama3"
-
-# Init Educhain client
-educhain_client = EduchainClient()
-
+qna_engine.set_model("openrouter/llama3")  # ✅ Set model explicitly if needed
 
 # === FUNCTIONS ===
 def generate_summary(text: str) -> str:
@@ -44,8 +40,7 @@ def generate_summary(text: str) -> str:
 
 def generate_flashcards(text: str, num: int = 3):
     try:
-        mcqs = educhain_client.qna_engine.generate_questions(topic=text, num=num)
-        return mcqs.questions
+        return qna_engine.generate_mcq(topic=text, num=num)
     except Exception as e:
         st.warning(f"Flashcard generation skipped: {e}")
         return []
@@ -69,20 +64,18 @@ if generate_btn:
     for idx, entry in enumerate(entries, start=1):
         st.subheader(f"Article {idx}: {entry.title}")
         with st.expander("Summary & Flashcards"):
-            # Summary
             summary = generate_summary(entry.summary)
             if summary:
                 st.markdown(f"**Summary:**  {summary}")
 
-            # Flashcards
             cards = generate_flashcards(entry.summary)
             if cards:
                 st.markdown("**Flashcards:**")
                 for card in cards:
-                    st.markdown(f"- **Q:** {card.question}")
-                    for opt in card.options:
+                    st.markdown(f"- **Q:** {card['question']}")
+                    for opt in card['options']:
                         st.markdown(f"  - {opt}")
-                    st.markdown(f"  - **Answer:** {card.answer}")
+                    st.markdown(f"  - **Answer:** {card['correct_answer']}")
     st.success("Done processing.")
 else:
     st.info("Configure in the sidebar and click 'Fetch & Process' to get started.")
