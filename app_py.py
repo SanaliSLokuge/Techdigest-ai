@@ -5,7 +5,7 @@ import os
 from educhain import Educhain
 
 # Setup keys (better use secrets in real apps)
-API_KEY = "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"
+API_KEY = "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"
 API_BASE = "https://openrouter.ai/api/v1"
 os.environ["OPENAI_API_KEY"] = API_KEY
 os.environ["OPENAI_API_BASE"] = API_BASE
@@ -23,7 +23,7 @@ def generate_summary(text):
         "temperature": 0.3
     }
     resp = requests.post(url, headers=headers, json=data)
-    print(resp.status_code, resp.text)
+    print(resp.status_code, resp.text) 
     resp.raise_for_status()
     return resp.json()["choices"][0]["message"]["content"].strip()
 
