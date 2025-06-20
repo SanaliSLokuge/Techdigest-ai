@@ -1,4 +1,5 @@
-streamlit
-requests
+streamlit>=1.30
 feedparser
-educhain @ git+https://github.com/satvik314/educhain.git@main
+requests
+educhain>=0.1.29
+langchain-openai
