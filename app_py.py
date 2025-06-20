@@ -8,12 +8,12 @@ Original file is located at
 """
 
 # Commented out IPython magic to ensure Python compatibility.
-!git clone https://github.com/satvik314/educhain.git
+git clone https://github.com/satvik314/educhain.git
 # %cd educhain
-!pip install -e .
-!ls educhain
+pip install -e .
+ls educhain
 from educhain import core
-!cat setup.py
+cat setup.py
 
 
 
@@ -41,7 +41,7 @@ for q in questions.questions:  # access the list inside MCQList
     print("Explanation:", q.explanation)
     print()
 
-!pip install feedparser
+pip install feedparser
 import feedparser
 
 def get_latest_news(feed_url, max_items=5):
@@ -124,7 +124,7 @@ for idx, (title, content) in enumerate(news, 1):
         print(f"Answer: {card.answer}\n")
     print("-----\n")
 
-!pip install streamlit
+pip install streamlit
 
 import streamlit as st
 import requests
