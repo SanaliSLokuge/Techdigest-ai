@@ -15,34 +15,36 @@ os.environ["OPENAI_API_BASE"] = API_BASE
 os.environ["EDUCHAIN_MODEL"] = "openrouter/llama3"
 educhain_client = Educhain()
 
-# === FUNCTIONS ===
-def generate_summary(text: str) -> str:
-    try:
-        url = f"{API_BASE}/chat/completions"
-        headers = {"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}
-        payload = {
-            "model": "openai/o4-mini",
-            "messages": [{"role": "user", "content": f"Summarize the following text briefly:\n\n{text}"}],
-            "max_tokens": 150,
-            "temperature": 0.3
-        }
-        resp = requests.post(url, headers=headers, json=payload)
-        if resp.status_code != 200:
-            st.error(f"Summarization API error {resp.status_code}: {resp.text}")
-            return ""
-        return resp.json()["choices"][0]["message"]["content"].strip()
-    except Exception as e:
-        st.error(f"Summarization failed: {e}")
-        return ""
+   def generate_summary(text: str) -> str:
+       try:
+           url = f"{API_BASE}/chat/completions"
+           headers = {"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}
+           payload = {
+               "model": "openai/o4-mini",
+               "messages": [{"role": "user", "content": f"Summarize the following text briefly:\n\n{text}"}],
+               "max_tokens": 150,
+               "temperature": 0.3
+           }
+           resp = requests.post(url, headers=headers, json=payload)
+           print(resp.text)  # Debugging line
+           if resp.status_code != 200:
+               st.error(f"Summarization API error {resp.status_code}: {resp.text}")
+               return ""
+           return resp.json()["choices"][0]["message"]["content"].strip()
+       except Exception as e:
+           st.error(f"Summarization failed: {e}")
+           return ""
 
 
-def generate_flashcards(text: str, num: int = 3):
-    try:
-        mcqs = educhain_client.qna_engine.generate_questions(topic=text, num=num)
-        return mcqs.questions
-    except Exception as e:
-        st.warning(f"Flashcard generation skipped: {e}")
-        return []
+   def generate_flashcards(text: str, num: int = 3):
+       try:
+           mcqs = educhain_client.qna_engine.generate_questions(topic=text, num=num)
+           print(mcqs)  # Debugging line
+           return mcqs.questions
+       except Exception as e:
+           st.warning(f"Flashcard generation skipped: {e}")
+           return []
+   
 
 
 def get_latest_news(feed_url: str, max_items: int = 3):
