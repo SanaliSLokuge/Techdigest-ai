@@ -2,14 +2,15 @@ import streamlit as st
 import feedparser
 import requests
 import os
-from educhain import Educhain  # ✅ Correct import
+from educhain import Educhain, LLMConfig
 
-# === CONFIG ===
-API_KEY  = "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"
-API_BASE = "https://openrouter.ai/api/v1"
+llm_config = LLMConfig(
+    model_name="openrouter/llama3",
+    api_key="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",  # OpenRouter key
+    api_base="https://openrouter.ai/api/v1"
+)
 
-# Initialize Educhain client
-client = Educhain()
+client = Educhain(llm_config)
 client.qna_engine.set_model("openrouter/llama3")  # Ensure flashcards use correct model
 
 # === FUNCTIONS ===
