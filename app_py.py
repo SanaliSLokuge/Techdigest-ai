@@ -2,85 +2,74 @@ import streamlit as st
 import feedparser
 import requests
 import os
-from educhain import Educhain
 
-# === CONFIG ===
-# Store your key in Streamlit secrets (Settings → Secrets)
-API_KEY = "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"
-API_BASE = "https://openrouter.ai/v1"
+from educhain import Educhain, LLMConfig
+from langchain_openai import ChatOpenAI
 
-# Educhain model setup
-os.environ["OPENAI_API_KEY"] = API_KEY
-os.environ["OPENAI_API_BASE"] = API_BASE
-os.environ["EDUCHAIN_MODEL"] = "openrouter/llama3"
-educhain_client = Educhain()
+# --- Set your OpenAI API key here or in environment variables ---
+OPENAI_API_KEY = "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"  # Your real OpenAI API key
 
-   def generate_summary(text: str) -> str:
-       try:
-           url = f"{API_BASE}/chat/completions"
-           headers = {"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}
-           payload = {
-               "model": "openai/o4-mini",
-               "messages": [{"role": "user", "content": f"Summarize the following text briefly:\n\n{text}"}],
-               "max_tokens": 150,
-               "temperature": 0.3
-           }
-           resp = requests.post(url, headers=headers, json=payload)
-           print(resp.text)  # Debugging line
-           if resp.status_code != 200:
-               st.error(f"Summarization API error {resp.status_code}: {resp.text}")
-               return ""
-           return resp.json()["choices"][0]["message"]["content"].strip()
-       except Exception as e:
-           st.error(f"Summarization failed: {e}")
-           return ""
+# Optional: set env var for convenience if you want to use it elsewhere
+os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
 
+# --- Initialize LangChain ChatOpenAI model with your key ---
+openai_model = ChatOpenAI(
+    model_name="gpt-4",               # or "gpt-3.5-turbo" depending on your access
+    openai_api_key=OPENAI_API_KEY
+)
 
-   def generate_flashcards(text: str, num: int = 3):
-       try:
-           mcqs = educhain_client.qna_engine.generate_questions(topic=text, num=num)
-           print(mcqs)  # Debugging line
-           return mcqs.questions
-       except Exception as e:
-           st.warning(f"Flashcard generation skipped: {e}")
-           return []
-   
+# --- Wrap LangChain model in Educhain config ---
+llm_config = LLMConfig(custom_model=openai_model)
 
+# --- Initialize Educhain client with config ---
+educhain_client = Educhain(llm_config)
 
-def get_latest_news(feed_url: str, max_items: int = 3):
-    feed = feedparser.parse(feed_url)
-    return feed.entries[:max_items]
+# --- Your utility functions ---
+def generate_summary(text):
+    url = "https://api.openai.com/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {OPENAI_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    data = {
+        "model": "gpt-4",  # or "gpt-3.5-turbo"
+        "messages": [{"role": "user", "content": f"Summarize this:\n\n{text}"}],
+        "max_tokens": 150,
+        "temperature": 0.3
+    }
+    resp = requests.post(url, headers=headers, json=data)
+    resp.raise_for_status()
+    return resp.json()["choices"][0]["message"]["content"].strip()
 
-# === STREAMLIT UI ===
-st.set_page_config(page_title="TechDigest AI", layout="wide")
-st.title("🔍 TechDigest AI – News Summaries & Flashcards")
+def get_latest_news(url, max_items=3):
+    return feedparser.parse(url).entries[:max_items]
 
-# Sidebar inputs
-with st.sidebar:
-    st.header("Configuration")
-    feed_url = st.text_input("RSS Feed URL", value="https://techcrunch.com/feed/")
-    max_articles = st.slider("Number of articles", 1, 10, 3)
-    generate_btn = st.button("Fetch & Process")
+def generate_flashcards(text, num=3):
+    return educhain_client.qna_engine.generate_questions(topic=text, num=num).questions
 
-# Main
-if generate_btn:
-    entries = get_latest_news(feed_url, max_articles)
-    for idx, entry in enumerate(entries, start=1):
-        st.subheader(f"Article {idx}: {entry.title}")
-        with st.expander("Summary & Flashcards"):
-            summary = generate_summary(entry.summary)
-            if summary:
-                st.markdown(f"**Summary:** {summary}")
+# --- Streamlit UI ---
+st.set_page_config("📰 TechDigest AI", layout="wide")
+st.title("🔍 TechDigest AI — Summarizer + Flashcards")
 
-            cards = generate_flashcards(entry.summary)
-            if cards:
-                st.markdown("**Flashcards:**")
-                for card in cards:
-                    st.markdown(f"- **Q:** {card.question}")
-                    for opt in card.options:
-                        st.markdown(f"  - {opt}")
-                    st.markdown(f"  - **Answer:** {card.answer}")
+url = st.text_input("RSS Feed URL", value="https://techcrunch.com/feed/")
+count = st.slider("Number of Articles", 1, 10, 3)
 
-    st.success("Done processing.")
+if st.button("Fetch & Generate"):
+    with st.spinner("Fetching and processing..."):
+        articles = get_latest_news(url, count)
+
+    for idx, entry in enumerate(articles, 1):
+        st.subheader(f"{idx}. {entry.title}")
+        summary = generate_summary(entry.summary)
+        st.markdown(f"**Summary:** {summary}")
+
+        cards = generate_flashcards(entry.summary)
+        st.markdown("**Flashcards:**")
+        for card in cards:
+            st.markdown(f"- **Q:** {card.question}")
+            for opt in card.options:
+                st.markdown(f"  - {opt}")
+            st.markdown(f"**Answer:** {card.answer}")
+        st.divider()
 else:
-    st.info("Configure in the sidebar and click 'Fetch & Process' to get started.")
+    st.info("Configure options and press the button.")
