@@ -17,7 +17,7 @@ def generate_summary(text):
     url = f"{API_BASE}/chat/completions"
     headers = {"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}
     data = {
-        "model": "gpt-3.5-turbo",
+        "model": "openrouter/openai/gpt-3.5-turbo",
         "messages": [{"role": "user", "content": f"Summarize the following text briefly:\n\n{text}"}],
         "max_tokens": 150,
         "temperature": 0.3,
