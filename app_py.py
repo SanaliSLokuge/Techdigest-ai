@@ -2,24 +2,27 @@
 import streamlit as st
 import feedparser
 import requests
-import os
 from educhain import Educhain
+from educhain.llm_config import LLMConfig
 
-# Set OpenRouter config
-API_KEY = "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"  # keep your key secure
+# === CONFIG ===
+API_KEY  = "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"  # 👈 OpenRouter Key
 API_BASE = "https://openrouter.ai/api/v1"
-os.environ["OPENAI_API_KEY"]  = API_KEY
-os.environ["OPENAI_API_BASE"] = API_BASE
-os.environ["EDUCHAIN_MODEL"]  = "openrouter/llama3"
 
-# Educhain client
-educhain_client = Educhain()
+# === Initialize Educhain Client with OpenRouter ===
+llm_config = LLMConfig(
+    model_name="openrouter/llama3",
+    api_key=API_KEY,
+    api_base=API_BASE
+)
+educhain_client = Educhain(llm_config)
 
+# === Utility Functions ===
 def generate_summary(text):
     url = f"{API_BASE}/chat/completions"
     headers = {
         "Authorization": f"Bearer {API_KEY}",
-        "Content-Type":  "application/json"
+        "Content-Type": "application/json"
     }
     data = {
         "model": "openai/o4-mini",
@@ -37,7 +40,7 @@ def get_latest_news(url, max_items=3):
 def generate_flashcards(text, num=3):
     return educhain_client.qna_engine.generate_questions(topic=text, num=num).questions
 
-# === STREAMLIT UI ===
+# === Streamlit UI ===
 st.set_page_config("📰 TechDigest AI", layout="wide")
 st.title("🔍 TechDigest AI — Summarizer + Flashcards")
 
@@ -45,7 +48,7 @@ url = st.text_input("RSS Feed URL", value="https://techcrunch.com/feed/")
 count = st.slider("Number of Articles", 1, 10, 3)
 
 if st.button("Fetch & Generate"):
-    with st.spinner("Fetching articles..."):
+    with st.spinner("Fetching and processing..."):
         articles = get_latest_news(url, count)
 
     for idx, entry in enumerate(articles, 1):
@@ -63,4 +66,3 @@ if st.button("Fetch & Generate"):
         st.divider()
 else:
     st.info("Configure options and press the button.")
-
