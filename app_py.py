@@ -9,7 +9,7 @@ OPENROUTER_API_KEY = st.secrets["OPENROUTER_API_KEY"]
 
 # --- Initialize OpenRouter ChatOpenAI with o3-mini:free ---
 openai_model = ChatOpenAI(
-    model_name="openai/o3-mini:free",  # Free-tier GPT-4o-mini
+    model_name="openai/o3-mini",  # Free-tier GPT-4o-mini
     openai_api_key=OPENROUTER_API_KEY,
     openai_api_base="https://openrouter.ai/api/v1",
     max_tokens=300,
