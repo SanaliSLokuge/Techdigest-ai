@@ -50,6 +50,9 @@ def generate_summary(text):
 def generate_flashcards(text, num=3):
     try:
         result = flashcard_chain.invoke({"text": truncate(text), "num": num})
+        if not result.strip():
+            st.warning("No flashcards generated. Possibly due to quota or token limit.")
+            return []
         return result.strip().split("\n\n")
     except Exception as e:
         st.warning(f"Flashcard generation failed: {e}")
