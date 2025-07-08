@@ -1,70 +1,62 @@
 import streamlit as st
 import feedparser
-import requests
-
 from langchain.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-from langchain.chains import LLMChain
 from langchain_openai import ChatOpenAI
 
 # --- Load API key securely ---
 OPENROUTER_API_KEY = st.secrets["OPENROUTER_API_KEY"]
 
-# --- Initialize LangChain ChatOpenAI with OpenRouter endpoint ---
+# --- Initialize OpenRouter ChatOpenAI with o3-mini:free ---
 openai_model = ChatOpenAI(
-    model_name="openai/o3-mini",  # This is OpenRouter's naming format
+    model_name="openai/o3-mini:free",  # Free-tier GPT-4o-mini
     openai_api_key=OPENROUTER_API_KEY,
-    openai_api_base="https://openrouter.ai/api/v1",  # Required for OpenRouter
+    openai_api_base="https://openrouter.ai/api/v1",
+    max_tokens=300,
+    temperature=0.3
 )
 
-# --- Prompt for flashcard generation ---
+# --- Prompt templates ---
+summary_prompt = PromptTemplate.from_template("Summarize this in 2–3 sentences:\n\n{text}")
 flashcard_prompt = PromptTemplate.from_template("""
-You are a helpful AI tutor. Based on the following text, generate {num} flashcards.
-Each flashcard should contain:
-- One multiple choice question
-- 3 answer options (A, B, C)
-- One clearly marked correct answer
+You are a helpful AI tutor. Based on the text, generate {num} multiple choice flashcards.
+Each should be:
+
+Q: question  
+A) Option A  
+B) Option B  
+C) Option C  
+Answer: <letter>
 
 Text:
 {text}
 """)
 
-flashcard_chain = LLMChain(
-    llm=openai_model,
-    prompt=flashcard_prompt,
-    output_parser=StrOutputParser()
-)
+# --- Chains ---
+summary_chain = summary_prompt | openai_model | StrOutputParser()
+flashcard_chain = flashcard_prompt | openai_model | StrOutputParser()
 
-# --- Your utility functions ---
+# --- Utility Functions ---
+def truncate(text, max_chars=1000):
+    return text if len(text) <= max_chars else text[:max_chars] + "..."
+
 def generate_summary(text):
-    url = "https://openrouter.ai/api/v1/chat/completions"
-    headers = {
-        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-        "Content-Type": "application/json"
-    }
-    data = {
-        "model": "openai/gpt-4",
-        "messages": [{"role": "user", "content": f"Summarize this:\n\n{text}"}],
-        "max_tokens": 150,
-        "temperature": 0.3
-    }
-    resp = requests.post(url, headers=headers, json=data)
-    if resp.status_code != 200:
-        st.error(f"Summarization failed: {resp.status_code}")
-        st.text(resp.text)
+    try:
+        return summary_chain.invoke({"text": truncate(text)}).strip()
+    except Exception as e:
+        st.error(f"Summarization failed: {e}")
         return ""
-    return resp.json()["choices"][0]["message"]["content"].strip()
-
-def get_latest_news(url, max_items=3):
-    return feedparser.parse(url).entries[:max_items]
 
 def generate_flashcards(text, num=3):
     try:
-        result = flashcard_chain.invoke({"text": text, "num": num})
+        result = flashcard_chain.invoke({"text": truncate(text), "num": num})
         return result.strip().split("\n\n")
     except Exception as e:
         st.warning(f"Flashcard generation failed: {e}")
         return []
+
+def get_latest_news(url, max_items=3):
+    return feedparser.parse(url).entries[:max_items]
 
 # --- Streamlit UI ---
 st.set_page_config("📰 TechDigest AI", layout="wide")
