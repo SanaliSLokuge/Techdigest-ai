@@ -1,15 +1,17 @@
 import streamlit as st
-import feedparser
+import requests
+from bs4 import BeautifulSoup
+
 from langchain.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_openai import ChatOpenAI
 
-# --- Load API key securely ---
+# --- API key ---
 OPENROUTER_API_KEY = st.secrets["OPENROUTER_API_KEY"]
 
-# --- Initialize OpenRouter ChatOpenAI with o3-mini:free ---
+# --- Initialize OpenRouter model (o3-mini:free) ---
 openai_model = ChatOpenAI(
-    model_name="openai/o3-mini",  # Free-tier GPT-4o-mini
+    model_name="openai/o3-mini",  # Use free-tier model
     openai_api_key=OPENROUTER_API_KEY,
     openai_api_base="https://openrouter.ai/api/v1",
     max_tokens=300,
@@ -36,20 +38,31 @@ Text:
 summary_chain = summary_prompt | openai_model | StrOutputParser()
 flashcard_chain = flashcard_prompt | openai_model | StrOutputParser()
 
-# --- Utility Functions ---
+# --- Utility functions ---
 def truncate(text, max_chars=1000):
     return text if len(text) <= max_chars else text[:max_chars] + "..."
 
+def extract_text_from_url(url):
+    try:
+        response = requests.get(url, timeout=10)
+        soup = BeautifulSoup(response.text, "html.parser")
+        paragraphs = soup.find_all("p")
+        text = " ".join([p.get_text() for p in paragraphs])
+        return truncate(text)
+    except Exception as e:
+        st.error(f"Failed to extract article: {e}")
+        return ""
+
 def generate_summary(text):
     try:
-        return summary_chain.invoke({"text": truncate(text)}).strip()
+        return summary_chain.invoke({"text": text}).strip()
     except Exception as e:
         st.error(f"Summarization failed: {e}")
         return ""
 
 def generate_flashcards(text, num=3):
     try:
-        result = flashcard_chain.invoke({"text": truncate(text), "num": num})
+        result = flashcard_chain.invoke({"text": text, "num": num})
         if not result.strip():
             st.warning("No flashcards generated. Possibly due to quota or token limit.")
             return []
@@ -58,30 +71,27 @@ def generate_flashcards(text, num=3):
         st.warning(f"Flashcard generation failed: {e}")
         return []
 
-def get_latest_news(url, max_items=3):
-    return feedparser.parse(url).entries[:max_items]
-
 # --- Streamlit UI ---
-st.set_page_config("📰 TechDigest AI", layout="wide")
-st.title("🔍 TechDigest AI — Summarizer + Flashcards")
+st.set_page_config("📄 Article Summarizer & Flashcards", layout="wide")
+st.title("📄 Smart Article Assistant — Summary + Flashcards")
 
-url = st.text_input("RSS Feed URL", value="https://techcrunch.com/feed/")
-count = st.slider("Number of Articles", 1, 10, 3)
+article_url = st.text_input("Enter the article URL:", value="")
 
-if st.button("Fetch & Generate"):
-    with st.spinner("Fetching and processing..."):
-        articles = get_latest_news(url, count)
+if st.button("Analyze Article"):
+    if not article_url:
+        st.warning("Please enter a valid article URL.")
+    else:
+        with st.spinner("Extracting content and generating insights..."):
+            text = extract_text_from_url(article_url)
 
-    for idx, entry in enumerate(articles, 1):
-        st.subheader(f"{idx}. {entry.title}")
+        if text:
+            st.subheader("📌 Summary")
+            summary = generate_summary(text)
+            st.markdown(summary)
 
-        summary = generate_summary(entry.summary)
-        st.markdown(f"**Summary:** {summary}")
-
-        flashcards = generate_flashcards(entry.summary)
-        st.markdown("**Flashcards:**")
-        for fc in flashcards:
-            st.markdown(fc)
-        st.divider()
-else:
-    st.info("Configure options and press the button.")
+            st.subheader("🧠 Flashcards")
+            flashcards = generate_flashcards(text)
+            for fc in flashcards:
+                st.markdown(fc)
+        else:
+            st.error("No text extracted from the page.")
