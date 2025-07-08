@@ -12,7 +12,7 @@ OPENROUTER_API_KEY = st.secrets["OPENROUTER_API_KEY"]
 
 # --- Initialize LangChain ChatOpenAI with OpenRouter endpoint ---
 openai_model = ChatOpenAI(
-    model_name="openai/gpt-4",  # This is OpenRouter's naming format
+    model_name="penai/o3-mini",  # This is OpenRouter's naming format
     openai_api_key=OPENROUTER_API_KEY,
     openai_api_base="https://openrouter.ai/api/v1",  # Required for OpenRouter
 )
